@@ -791,8 +791,7 @@ class Trainer:
         Args:
             num_training_steps (int): The number of training steps to do.
         """
-        return None
-        if self.lr_scheduler is None:
+        if self.lr_scheduler is None and not self.args.no_scheduler:
             warmup_steps = (
                 self.args.warmup_steps
                 if self.args.warmup_steps > 0

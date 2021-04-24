@@ -509,6 +509,7 @@ class TrainingArguments:
     )
     adafactor: bool = field(default=False, metadata={"help": "Whether or not to replace AdamW by Adafactor."})
     adas: bool = field(default=False, metadata={"help": "Whether or not to replace AdamW by Adas."})
+    no_scheduler: bool = field(default=False, metadata={"help": "Flag to remove scheduler"})
     group_by_length: bool = field(
         default=False,
         metadata={"help": "Whether or not to group samples of roughly the same length together when batching."},
