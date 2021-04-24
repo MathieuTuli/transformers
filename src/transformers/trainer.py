@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 
 from tqdm.auto import tqdm
 
-from adas import Adas
+from .adas import Adas
 
 # Integrations must be imported before ML frameworks:
 from .integrations import (  # isort: split
@@ -759,6 +759,8 @@ class Trainer:
                 optimizer_kwargs = {"scale_parameter": False, "relative_step": False}
             elif self.args.adas:
                 optimizer_cls = Adas
+                optimizer_grouped_parameters.append(
+                {"all_params": list(self.model.parameters())})
                 optimizer_kwargs = {
                     "beta": self.args.adas_beta,
                     "momentum": self.args.adas_momentum,
