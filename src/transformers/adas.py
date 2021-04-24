@@ -96,8 +96,8 @@ def EVBMF(Y, sigma2=None, H=None):
     if H is None:
         H = L
 
-    alpha = L/M
-    tauubar = 2.5129*np.sqrt(alpha)
+    alpha = L / M
+    tauubar = 2.5129 * np.sqrt(alpha)
 
     # SVD of the input matrix, max rank of H
     # U, s, V = np.linalg.svd(Y)
@@ -110,24 +110,24 @@ def EVBMF(Y, sigma2=None, H=None):
     residual = 0.
     if H < L:
         # residual = np.sum(np.sum(Y**2)-np.sum(s**2))
-        residual = torch.sum(np.sum(Y**2)-np.sum(s**2))
+        residual = torch.sum(np.sum(Y**2) - np.sum(s**2))
 
     # Estimation of the variance when sigma2 is unspecified
     if sigma2 is None:
-        xubar = (1+tauubar)*(1+alpha/tauubar)
-        eH_ub = int(np.min([np.ceil(L/(1+alpha))-1, H]))-1
+        xubar = (1 + tauubar) * (1 + alpha / tauubar)
+        eH_ub = int(np.min([np.ceil(L / (1 + alpha)) - 1, H])) - 1
         # upper_bound = (np.sum(s**2)+residual)/(L*M)
         # lower_bound = np.max(
         #     [s[eH_ub+1]**2/(M*xubar), np.mean(s[eH_ub+1:]**2)/M])
-        upper_bound = (torch.sum(s**2)+residual)/(L*M)
+        upper_bound = (torch.sum(s**2) + residual) / (L * M)
         lower_bound = torch.max(torch.stack(
-            [s[eH_ub+1]**2/(M*xubar), torch.mean(s[eH_ub+1:]**2)/M], dim=0))
+            [s[eH_ub + 1]**2 / (M * xubar), torch.mean(s[eH_ub + 1:]**2) / M], dim=0))
 
         scale = 1.  # /lower_bound
-        s = s*np.sqrt(scale)
-        residual = residual*scale
-        lower_bound = lower_bound*scale
-        upper_bound = upper_bound*scale
+        s = s * np.sqrt(scale)
+        residual = residual * scale
+        lower_bound = lower_bound * scale
+        upper_bound = upper_bound * scale
 
         sigma2_opt = minimize_scalar(
             EVBsigma2, args=(L, M, s.cpu().numpy(), residual, xubar),
@@ -136,7 +136,7 @@ def EVBMF(Y, sigma2=None, H=None):
         sigma2 = sigma2_opt.x
 
     # Threshold gamma term
-    threshold = np.sqrt(M*sigma2*(1+tauubar)*(1+alpha/tauubar))
+    threshold = np.sqrt(M * sigma2 * (1 + tauubar) * (1 + alpha / tauubar))
     # pos = np.sum(s > threshold)
     pos = torch.sum(s > threshold)
 
@@ -151,9 +151,9 @@ def EVBMF(Y, sigma2=None, H=None):
     #     4*L*M*sigma2**2/s[:pos]**4))
     # d = np.multiply(s[:pos]/2, 1-np.divide((L+M)*sigma2, s[:pos]**2) + np.sqrt(
     #     (1-np.divide((L+M)*sigma2, s[:pos]**2))**2 - 4*L*M*sigma2**2/s[:pos]**4))
-    d = (s[:pos]/2)*(1-(L+M)*sigma2/s[:pos]**2 +
-                     torch.sqrt((1 -
-                                 (L+M)*sigma2/s[:pos]**2)**2 - 4*L*M*sigma2**2/s[:pos]**4))
+    d = (s[:pos] / 2) * (1 - (L + M) * sigma2 / s[:pos]**2
+                         + torch.sqrt((1 -
+                                       (L + M) * sigma2 / s[:pos]**2)**2 - 4 * L * M * sigma2**2 / s[:pos]**4))
 
     # Computation of the posterior
     # post = {}
@@ -182,8 +182,8 @@ def EVBMF(Y, sigma2=None, H=None):
 def EVBsigma2(sigma2, L, M, s, residual, xubar):
     H = len(s)
 
-    alpha = L/M
-    x = s**2/(M*sigma2)
+    alpha = L / M
+    x = s**2 / (M * sigma2)
 
     z1 = x[x > xubar]
     z2 = x[x <= xubar]
@@ -191,25 +191,25 @@ def EVBsigma2(sigma2, L, M, s, residual, xubar):
 
     term1 = np.sum(z2 - np.log(z2))
     term2 = np.sum(z1 - tau_z1)
-    term3 = np.sum(np.log(np.divide(tau_z1+1, z1)))
-    term4 = alpha*np.sum(np.log(tau_z1/alpha+1))
+    term3 = np.sum(np.log(np.divide(tau_z1 + 1, z1)))
+    term4 = alpha * np.sum(np.log(tau_z1 / alpha + 1))
 
-    obj = term1+term2+term3+term4 + residual/(M*sigma2) + (L-H)*np.log(sigma2)
+    obj = term1 + term2 + term3 + term4 + residual / (M * sigma2) + (L - H) * np.log(sigma2)
 
     return obj
 
 
 def phi0(x):
-    return x-np.log(x)
+    return x - np.log(x)
 
 
 def phi1(x, alpha):
-    return np.log(tau(x, alpha)+1) + alpha*np.log(tau(x, alpha)/alpha + 1
-                                                  ) - tau(x, alpha)
+    return np.log(tau(x, alpha) + 1) + alpha * np.log(tau(x, alpha) / alpha + 1
+                                                      ) - tau(x, alpha)
 
 
 def tau(x, alpha):
-    return 0.5 * (x-(1+alpha) + np.sqrt((x-(1+alpha))**2 - 4*alpha))
+    return 0.5 * (x - (1 + alpha) + np.sqrt((x - (1 + alpha))**2 - 4 * alpha))
 
 
 class Metrics:
@@ -259,8 +259,8 @@ class Metrics:
         KG_list = list()
         for i, (index, metric) in enumerate(self.history[epoch]):
             if isinstance(metric, ConvLayerMetrics):
-                KG_list.append((metric.input_channel.KG +
-                                metric.output_channel.KG) / 2)
+                KG_list.append((metric.input_channel.KG
+                                + metric.output_channel.KG) / 2)
             elif isinstance(metric, LayerMetrics):
                 KG_list.append(metric.KG)
         return np.array(KG_list)
@@ -283,12 +283,12 @@ class Metrics:
                 tensor_size = layer_tensor.shape
                 mode_3_unfold = layer_tensor.permute(1, 0, 2, 3)
                 mode_3_unfold = torch.reshape(
-                    mode_3_unfold, [tensor_size[1], tensor_size[0] *
-                                    tensor_size[2] * tensor_size[3]])
+                    mode_3_unfold, [tensor_size[1], tensor_size[0]
+                                    * tensor_size[2] * tensor_size[3]])
                 mode_4_unfold = layer_tensor
                 mode_4_unfold = torch.reshape(
-                    mode_4_unfold, [tensor_size[0], tensor_size[1] *
-                                    tensor_size[2] * tensor_size[3]])
+                    mode_4_unfold, [tensor_size[0], tensor_size[1]
+                                    * tensor_size[2] * tensor_size[3]])
                 in_rank, in_KG, in_condition = self.compute_low_rank(
                     mode_3_unfold, tensor_size[1])
                 if in_rank is None and in_KG is None and in_condition is None:
@@ -384,7 +384,7 @@ class Adas(Optimizer):
         self.step_size = step_size
         self.gamma = gamma
         self.beta = beta
-        self.metrics = metrics = Metrics(params=params[3]["all_params"], linear=linear)
+        self.metrics = metrics = Metrics(params=params[2]["all_params"], linear=linear)
         self.lr_vector = np.repeat(a=lr, repeats=len(metrics.params))
         self.velocity = np.zeros(
             len(self.metrics.params) - len(self.metrics.mask))
@@ -471,4 +471,3 @@ class Adas(Optimizer):
                 p.data.add_(d_p, alpha=-self.lr_vector[p_index])
 
         return loss
-
