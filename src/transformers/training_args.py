@@ -367,6 +367,10 @@ class TrainingArguments:
     adam_beta1: float = field(default=0.9, metadata={"help": "Beta1 for AdamW optimizer"})
     adam_beta2: float = field(default=0.999, metadata={"help": "Beta2 for AdamW optimizer"})
     adam_epsilon: float = field(default=1e-8, metadata={"help": "Epsilon for AdamW optimizer."})
+    adas_beta: float = field(default=0.9, metadata={"help": "Beta for Adas optimizer"})
+    adas_step_size: float = field(default=None, metadata={"help": "StepSize for Adas optimizer"})
+    adas_momentum: float = field(default=0.9, metadata={"help": "Momentum for Adas optimizer"})
+    adas_gamma: float = field(default=1, metadata={"help": "Gamma for Adas optimizer"})
     max_grad_norm: float = field(default=1.0, metadata={"help": "Max gradient norm."})
 
     num_train_epochs: float = field(default=3.0, metadata={"help": "Total number of training epochs to perform."})
@@ -504,6 +508,7 @@ class TrainingArguments:
         default=0.0, metadata={"help": "The label smoothing epsilon to apply (zero means no label smoothing)."}
     )
     adafactor: bool = field(default=False, metadata={"help": "Whether or not to replace AdamW by Adafactor."})
+    adas: bool = field(default=False, metadata={"help": "Whether or not to replace AdamW by Adas."})
     group_by_length: bool = field(
         default=False,
         metadata={"help": "Whether or not to group samples of roughly the same length together when batching."},

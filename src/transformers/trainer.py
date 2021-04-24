@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 
 from tqdm.auto import tqdm
 
+from adas import Adas
 
 # Integrations must be imported before ML frameworks:
 from .integrations import (  # isort: split
@@ -756,6 +757,14 @@ class Trainer:
             if self.args.adafactor:
                 optimizer_cls = Adafactor
                 optimizer_kwargs = {"scale_parameter": False, "relative_step": False}
+            elif self.args.adas:
+                optimizer_cls = Adas
+                optimizer_kwargs = {
+                    "beta": self.args.adas_beta,
+                    "momentum": self.args.adas_momentum,
+                    "step_size": self.args.adas_step_size,
+                    "gamma": self.args.adas_gamma,
+                }
             else:
                 optimizer_cls = AdamW
                 optimizer_kwargs = {
@@ -782,6 +791,7 @@ class Trainer:
         Args:
             num_training_steps (int): The number of training steps to do.
         """
+        return None
         if self.lr_scheduler is None:
             warmup_steps = (
                 self.args.warmup_steps
@@ -1269,7 +1279,8 @@ class Trainer:
                         self.optimizer.step()
 
                     if optimizer_was_run and not self.deepspeed:
-                        self.lr_scheduler.step()
+                        if self.lr_scheduler is not None:
+                            self.lr_scheduler.step()
 
                     model.zero_grad()
                     self.state.global_step += 1
@@ -1280,7 +1291,8 @@ class Trainer:
 
                 if self.control.should_epoch_stop or self.control.should_training_stop:
                     break
-
+            if isinstance(self.optimizer, Adas):
+                self.optimizer.epoch_step()
             self.control = self.callback_handler.on_epoch_end(args, self.state, self.control)
             self._maybe_log_save_evaluate(tr_loss, model, trial, epoch)
 
